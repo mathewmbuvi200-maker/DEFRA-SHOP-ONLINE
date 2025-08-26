@@ -3,69 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DEFRA Online Shop</title>
+  <title>Defra Online Shop</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .product { border: 1px solid #ccc; padding: 10px; margin: 10px; display: inline-block; width: 200px; }
+    .cart { margin-top: 20px; border: 1px solid #000; padding: 10px; }
+    button { margin-top: 5px; }
+    .remove { color: red; cursor: pointer; margin-left: 10px; }
+    h1 { color: darkgreen; }
+    .tagline { font-style: italic; color: gray; margin-bottom: 20px; }
+  </style>
+  <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
     (function(){
-      emailjs.init("IOmeyyLIRxx4VEVDi"); // Public Key
+      emailjs.init("IOmeyyLIRxx4VEVDi"); // Your EmailJS Public Key
     })();
   </script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f8f8f8; }
-    h1 { text-align: center; color: #333; }
-    .product { border: 1px solid #ccc; background: #fff; padding: 15px; margin: 10px; display: inline-block; width: 200px; text-align: center; border-radius: 10px; }
-    .cart { margin-top: 20px; padding: 15px; border: 1px solid #666; background: #fff; border-radius: 10px; }
-    button { padding: 8px 12px; background: green; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    button.remove { background: red; }
-    .payment-info { margin-top: 20px; background: #e3f9e5; padding: 10px; border: 1px solid #4CAF50; border-radius: 8px; }
-    .error { color: red; font-weight: bold; }
-    .success { color: green; font-weight: bold; }
-  </style>
 </head>
 <body>
+  <h1>Defra Online Shop</h1>
+  <p class="tagline">This is where we meet your shopping needs the fastest, safest, and cheapest way.</p>
 
-  <h1>DEFRA Online Shop</h1>
-
-  <div class="product">
-    <h3>T-shirt</h3>
-    <p>Ksh 800</p>
-    <button onclick="addToCart('T-shirt', 800)">Add to Cart</button>
-  </div>
-
-  <div class="product">
-    <h3>Cooking Pot</h3>
-    <p>Ksh 1500</p>
-    <button onclick="addToCart('Cooking Pot', 1500)">Add to Cart</button>
-  </div>
-
-  <div class="product">
-    <h3>Smartphone</h3>
-    <p>Ksh 12500</p>
-    <button onclick="addToCart('Smartphone', 12500)">Add to Cart</button>
-  </div>
-
+  <div id="products"></div>
+  
   <div class="cart">
-    <h2>Shopping Cart</h2>
-    <ul id="cart-list"></ul>
-    <p><strong>Total: Ksh <span id="total">0</span></strong></p>
-    <input type="text" id="customerName" placeholder="Your Name"><br><br>
-    <input type="email" id="customerEmail" placeholder="Your Email"><br><br>
-    <button onclick="placeOrder()">Place Order</button>
-    <p id="order-message"></p>
-  </div>
+    <h2>Cart</h2>
+    <ul id="cart"></ul>
+    <p><strong>Total:</strong> Ksh <span id="total">0</span></p>
 
-  <div class="payment-info">
-    <h3>Payment Options:</h3>
-    <p><strong>M-Pesa Send Money:</strong> 0757603037</p>
-    <p><strong>Paybill:</strong> 247247</p>
-    <p><strong>Account Number:</strong> 0763403580</p>
+    <form id="checkoutForm">
+      <label>Name: <input type="text" name="name" required></label><br><br>
+      <label>Email: <input type="email" name="email" required></label><br><br>
+
+      <!-- Payment Options -->
+      <label>Payment Option:
+        <select name="payment" required>
+          <option value="">-- Select Payment Method --</option>
+          <option value="mpesa_send">M-Pesa (Send Money: 0757603037)</option>
+          <option value="mpesa_paybill">M-Pesa Paybill (Business: 247247, Account: 0763403580)</option>
+          <option value="card">Credit Card</option>
+          <option value="paypal">PayPal</option>
+        </select>
+      </label><br><br>
+
+      <!-- Payment Details -->
+      <label>Transaction Code: <input type="text" name="transaction" placeholder="Enter M-Pesa/Payment Code" required></label><br><br>
+      <label>Phone Number: <input type="text" name="phone" placeholder="07XXXXXXXX" required></label><br><br>
+
+      <button type="submit">Place Order</button>
+    </form>
+
+    <button onclick="exportCSV()">Export Order as CSV</button>
   </div>
 
   <script>
+    const products = [
+      { id: 1, name: "Product A", price: 1000 },
+      { id: 2, name: "Product B", price: 1500 },
+      { id: 3, name: "Product C", price: 2000 }
+    ];
     let cart = [];
 
-    function addToCart(product, price) {
-      cart.push({ product, price });
+    const productsDiv = document.getElementById("products");
+    const cartUl = document.getElementById("cart");
+    const totalSpan = document.getElementById("total");
+
+    function renderProducts() {
+      productsDiv.innerHTML = "";
+      products.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "product";
+        div.innerHTML = `<h3>${p.name}</h3><p>Price: Ksh ${p.price}</p>
+                         <button onclick="addToCart(${p.id})">Add to Cart</button>`;
+        productsDiv.appendChild(div);
+      });
+    }
+
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      cart.push(product);
       renderCart();
     }
 
@@ -75,54 +92,67 @@
     }
 
     function renderCart() {
-      const list = document.getElementById("cart-list");
-      list.innerHTML = "";
+      cartUl.innerHTML = "";
       let total = 0;
       cart.forEach((item, index) => {
-        list.innerHTML += `<li>${item.product} - Ksh ${item.price} 
-          <button class="remove" onclick="removeFromCart(${index})">Remove</button></li>`;
+        const li = document.createElement("li");
+        li.innerHTML = `${item.name} - Ksh ${item.price} <span class="remove" onclick="removeFromCart(${index})">[Remove]</span>`;
+        cartUl.appendChild(li);
         total += item.price;
       });
-      document.getElementById("total").innerText = total;
+      totalSpan.textContent = total;
     }
 
-    function placeOrder() {
-      const name = document.getElementById("customerName").value;
-      const email = document.getElementById("customerEmail").value;
-      const total = document.getElementById("total").innerText;
+    document.getElementById("checkoutForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      const formData = new FormData(this);
 
-      if (cart.length === 0) {
-        document.getElementById("order-message").innerHTML = "<span class='error'>Your cart is empty!</span>";
-        return;
-      }
-      if (!name || !email) {
-        document.getElementById("order-message").innerHTML = "<span class='error'>Please fill in your details!</span>";
+      // Check if transaction code is filled
+      if (!formData.get("transaction") || !formData.get("phone")) {
+        alert("Please complete your payment and fill in the transaction details.");
         return;
       }
 
-      // Simulate payment verification (basic check)
-      if (total > 0) {
-        // Send email using EmailJS
-        let orderList = cart.map(item => `${item.product} - Ksh ${item.price}`).join(", ");
-        let templateParams = {
-          customer_name: name,
-          customer_email: email,
-          order_list: orderList,
-          total_amount: total,
-          payment_method: "M-Pesa (Paybill or Send Money)"
-        };
+      // Prepare order details
+      let orderDetails = "";
+      cart.forEach(item => { orderDetails += `${item.name} - Ksh ${item.price}\n`; });
 
-        emailjs.send("service_q1wwcea", "template_d68ychp", templateParams)
-          .then(function(response) {
-            document.getElementById("order-message").innerHTML = "<span class='success'>Order placed successfully! Check your email for confirmation.</span>";
-            cart = [];
-            renderCart();
-          }, function(error) {
-            document.getElementById("order-message").innerHTML = "<span class='error'>Payment not confirmed. Please complete payment before order is processed.</span>";
-          });
-      }
+      const templateParams = {
+        customer_name: formData.get("name"),
+        customer_email: formData.get("email"),
+        payment_method: formData.get("payment"),
+        transaction_code: formData.get("transaction"),
+        phone_number: formData.get("phone"),
+        order_list: orderDetails,
+        total_amount: totalSpan.textContent
+      };
+
+      // Send Email via EmailJS
+      emailjs.send("service_q1wwcea", "template_d68ychp", templateParams)
+        .then(response => {
+          alert("Order placed successfully! Confirmation sent to your email. We will notify Defra Shop.");
+          cart = [];
+          renderCart();
+          this.reset();
+        }, error => {
+          alert("Failed to send order. Please try again.");
+        });
+    });
+
+    function exportCSV() {
+      let csv = "Product,Price\n";
+      cart.forEach(item => {
+        csv += `${item.name},${item.price}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.setAttribute("href", url);
+      a.setAttribute("download", "order.csv");
+      a.click();
     }
+
+    renderProducts();
   </script>
-
 </body>
 </html>
