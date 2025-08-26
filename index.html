@@ -320,8 +320,7 @@
       let total=0;
       state.cart.forEach(l=>{ const p = state.products.find(x=>x.id===l.id); const unit=p?p.price:0; const lt=unit*l.qty; total+=lt; rows.push([p?.name||l.id,l.qty,unit,lt]);});
       rows.push(['TOTAL','','',total]);
-      const csv = rows.map(r=>r.join(',')).join('
-');
+      const csv = rows.map(r=>r.join(',')).join('');
       const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
       const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`order_${Date.now()}.csv`; a.click(); URL.revokeObjectURL(url);
     }
