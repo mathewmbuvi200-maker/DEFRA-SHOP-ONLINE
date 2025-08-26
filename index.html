@@ -1,158 +1,375 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Defra Online Shop</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DEFRA ONLINE SHOP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .product { border: 1px solid #ccc; padding: 10px; margin: 10px; display: inline-block; width: 200px; }
-    .cart { margin-top: 20px; border: 1px solid #000; padding: 10px; }
-    button { margin-top: 5px; }
-    .remove { color: red; cursor: pointer; margin-left: 10px; }
-    h1 { color: darkgreen; }
-    .tagline { font-style: italic; color: gray; margin-bottom: 20px; }
+    :root{--brand:#1a8e53;--brand-2:#ff9f1a;--bg:#f6f7fb;--card:#fff;--text:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;--shadow:0 1px 10px rgba(0,0,0,.08);--shadow-lg:0 10px 24px rgba(0,0,0,.16)}
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);box-shadow:var(--shadow);z-index:20}
+    .head-inner{max-width:1100px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:14px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .brand svg{width:40px;height:40px}
+    .slogan{color:var(--muted);font-size:.95rem}
+    .wrap{max-width:1100px;margin:18px auto;padding:0 16px;display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow)}
+    .card h2{margin:0;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .pad{padding:14px 16px}
+
+    /* toolbar */
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .search{display:flex;flex:1 1 260px}
+    input,select,textarea{padding:10px 12px;border:1px solid var(--border);border-radius:12px;width:100%}
+    .search input{border-right:0;border-radius:12px 0 0 12px}
+    .search button{border:1px solid var(--border);background:#fff;border-radius:0 12px 12px 0;padding:10px 12px;cursor:pointer}
+    .btn{appearance:none;border:0;border-radius:12px;background:var(--brand);color:#fff;font-weight:700;padding:10px 14px;cursor:pointer}
+    .btn.ghost{background:#fff;color:var(--text);border:1px solid var(--border)}
+    .btn.warn{background:#ef4444}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+    .product{overflow:hidden;border-radius:16px;border:1px solid var(--border);background:#fff;display:flex;flex-direction:column}
+    .product img{width:100%;height:160px;object-fit:cover}
+    .product .body{padding:12px;display:flex;flex-direction:column;gap:6px}
+    .price{font-weight:800}
+    .pill{display:inline-block;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;padding:2px 10px;border-radius:999px;font-size:12px}
+
+    /* cart */
+    .cart ul{list-style:none;margin:0;padding:0;max-height:260px;overflow:auto}
+    .line{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border)}
+    .qty{display:flex;align-items:center;gap:6px}
+    .qty .btn{padding:6px 10px}
+
+    /* tabs */
+    .tabs{display:flex;gap:8px;padding:8px;border-bottom:1px solid var(--border)}
+    .tab{padding:8px 12px;border-radius:12px;cursor:pointer}
+    .tab.active{background:#efefef}
+
+    /* responsive */
+    @media (max-width: 860px){.wrap{grid-template-columns:1fr}.cart{order:2}}
   </style>
-  <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    (function(){
-      emailjs.init("IOmeyyLIRxx4VEVDi"); // Your EmailJS Public Key
-    })();
+    // ===== EmailJS CONFIG (provided by you) =====
+    const EMAILJS_PUBLIC_KEY = "IOmeyyLIRxx4VEVDi";   // Public key
+    const EMAILJS_SERVICE_ID = "service_q1wwcea";     // Service ID
+    const EMAILJS_TEMPLATE_ID = "template_d68ychp";   // Template ID
+    const OWNER_EMAIL = "your@email.here";            // <-- optional, set your address in your EmailJS template OR here
+    (function(){ if(window.emailjs){ emailjs.init(EMAILJS_PUBLIC_KEY); } })();
   </script>
 </head>
 <body>
-  <h1>Defra Online Shop</h1>
-  <p class="tagline">This is where we meet your shopping needs the fastest, safest, and cheapest way.</p>
+  <header>
+    <div class="head-inner">
+      <!-- Inline SVG logo (no extra file needed) -->
+      <svg viewBox="0 0 256 64" xmlns="http://www.w3.org/2000/svg" aria-label="DEFRA logo">
+        <defs>
+          <linearGradient id="g" x1="0" x2="1">
+            <stop stop-color="#1a8e53"/>
+            <stop offset="1" stop-color="#14b86a"/>
+          </linearGradient>
+        </defs>
+        <g fill="none" stroke="url(#g)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h56l-8 28H36"/>
+          <circle cx="36" cy="52" r="6"/>
+          <circle cx="56" cy="52" r="6"/>
+        </g>
+        <path d="M70 10 l12 12 l12-12" fill="none" stroke="#ff9f1a" stroke-width="8" stroke-linecap="round"/>
+        <text x="100" y="28" font-size="22" font-weight="800" fill="#0f172a">DEFRA</text>
+        <text x="100" y="52" font-size="14" font-weight="700" fill="#14532d">ONLINE SHOP</text>
+      </svg>
+      <div>
+        <div class="brand">DEFRA ONLINE SHOP</div>
+        <div class="slogan">This is where we meet your shopping needs the fastest, safest, and cheapest way.</div>
+      </div>
+    </div>
+  </header>
 
-  <div id="products"></div>
-  
-  <div class="cart">
-    <h2>Cart</h2>
-    <ul id="cart"></ul>
-    <p><strong>Total:</strong> Ksh <span id="total">0</span></p>
+  <div class="wrap">
+    <!-- ======= SHOP PANEL ======= -->
+    <section class="card">
+      <div class="tabs">
+        <div class="tab active" id="tab-shop" onclick="switchTab('shop')">Shop</div>
+        <div class="tab" id="tab-admin" onclick="switchTab('admin')">Admin (owner)</div>
+      </div>
 
-    <form id="checkoutForm">
-      <label>Name: <input type="text" name="name" required></label><br><br>
-      <label>Email: <input type="email" name="email" required></label><br><br>
+      <!-- SHOP CONTENT -->
+      <div id="shop-view">
+        <h2 class="pad">Products</h2>
+        <div class="pad toolbar">
+          <div class="search">
+            <input id="q" placeholder="Search products or tags..."/>
+            <button onclick="searchProducts()">Search</button>
+          </div>
+          <select id="catFilter" onchange="searchProducts()" style="max-width:220px">
+            <option value="">All categories</option>
+            <option>Clothing</option>
+            <option>Utensils</option>
+            <option>Gadgets</option>
+            <option>Designers</option>
+            <option>Electronics</option>
+            <option>Fashion</option>
+            <option>Kitchen Wear</option>
+          </select>
+          <button class="btn ghost" onclick="clearFilters()">Clear</button>
+        </div>
+        <div id="products" class="pad grid"></div>
+      </div>
 
-      <!-- Payment Options -->
-      <label>Payment Option:
-        <select name="payment" required>
-          <option value="">-- Select Payment Method --</option>
-          <option value="mpesa_send">M-Pesa (Send Money: 0757603037)</option>
-          <option value="mpesa_paybill">M-Pesa Paybill (Business: 247247, Account: 0763403580)</option>
-          <option value="card">Credit Card</option>
-          <option value="paypal">PayPal</option>
+      <!-- ADMIN CONTENT (password protected) -->
+      <div id="admin-view" style="display:none">
+        <h2 class="pad">Admin • Add / Manage Products</h2>
+        <div class="pad" id="admin-lock">
+          <input id="admin-pass" type="password" placeholder="Enter admin password" style="max-width:260px"/>
+          <button class="btn" onclick="adminLogin()">Unlock</button>
+          <div class="slogan">Tip: change <code>ADMIN_PASSWORD</code> in the script.</div>
+        </div>
+        <div class="pad" id="admin-panel" style="display:none">
+          <div class="grid">
+            <div class="card pad" style="grid-column: span 2;">
+              <h3 style="margin-top:0">Upload New Product</h3>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+                <input id="pname" placeholder="Product name"/>
+                <input id="pprice" type="number" placeholder="Price (KES)"/>
+                <select id="pcat">
+                  <option>Clothing</option>
+                  <option>Utensils</option>
+                  <option>Gadgets</option>
+                  <option>Designers</option>
+                  <option>Electronics</option>
+                  <option>Fashion</option>
+                  <option>Kitchen Wear</option>
+                </select>
+                <input id="ptags" placeholder="Tags (comma separated)"/>
+                <input id="pimg" type="file" accept="image/*"/>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button class="btn" onclick="addProduct()">Add Product</button>
+                <button class="btn ghost" onclick="wipeProducts()">Clear ALL (danger)</button>
+              </div>
+              <div class="slogan">Images are stored locally in the browser (base64). For multi-device sync, connect a simple webhook later.</div>
+            </div>
+            <div class="card pad" style="grid-column: span 2;">
+              <h3 style="margin-top:0">Current Products</h3>
+              <div id="admin-products" class="grid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= CART / CHECKOUT ======= -->
+    <aside class="card cart">
+      <h2 class="pad">Cart</h2>
+      <div class="pad"><ul id="cartList"></ul></div>
+      <div class="pad" style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:12px">
+        <strong>Total: <span id="total">KES 0</span></strong>
+        <button class="btn ghost" onclick="emptyCart()">Empty</button>
+      </div>
+      <h2 class="pad">Checkout</h2>
+      <div class="pad" style="display:grid;gap:10px">
+        <input id="name" placeholder="Your name"/>
+        <input id="email" placeholder="Your email"/>
+        <input id="phone" placeholder="Phone (07XXXXXXXX)"/>
+        <select id="payment">
+          <option value="">-- Select Payment --</option>
+          <option value="M-Pesa Send Money (0757603037)">M-Pesa Send Money (0757603037)</option>
+          <option value="M-Pesa Paybill 247247 / Acc 0763403580">M-Pesa Paybill (247247 • Acc: 0763403580)</option>
         </select>
-      </label><br><br>
-
-      <!-- Payment Details -->
-      <label>Transaction Code: <input type="text" name="transaction" placeholder="Enter M-Pesa/Payment Code" required></label><br><br>
-      <label>Phone Number: <input type="text" name="phone" placeholder="07XXXXXXXX" required></label><br><br>
-
-      <button type="submit">Place Order</button>
-    </form>
-
-    <button onclick="exportCSV()">Export Order as CSV</button>
+        <input id="trx" placeholder="Enter transaction code (e.g. QJK45G78)"/>
+        <textarea id="notes" placeholder="Order notes (optional)"></textarea>
+        <div class="pill">Pay by M-Pesa then paste the transaction code above.</div>
+        <button class="btn" onclick="placeOrder()">Place Order</button>
+        <button class="btn ghost" onclick="exportCsv()">Export CSV</button>
+        <div id="msg" class="slogan"></div>
+      </div>
+    </aside>
   </div>
 
   <script>
-    const products = [
-      { id: 1, name: "Product A", price: 1000 },
-      { id: 2, name: "Product B", price: 1500 },
-      { id: 3, name: "Product C", price: 2000 }
+    // ========= Simple in-page tabs =========
+    function switchTab(which){
+      document.getElementById('tab-shop').classList.toggle('active', which==='shop');
+      document.getElementById('tab-admin').classList.toggle('active', which==='admin');
+      document.getElementById('shop-view').style.display = which==='shop' ? 'block' : 'none';
+      document.getElementById('admin-view').style.display = which==='admin' ? 'block' : 'none';
+    }
+
+    // ========= Data model =========
+    const ADMIN_PASSWORD = 'defra123'; // ← CHANGE THIS
+    const LS_PRODUCTS = 'defra_products_v1';
+    const LS_CART = 'defra_cart_v1';
+
+    // Seed with a few defaults if nothing exists
+    const DEFAULTS = [
+      { id: 'p1', name:'Classic T‑Shirt', price:1200, category:'Clothing', tags:['clothes','tee'], image:'https://picsum.photos/seed/defra1/600/400' },
+      { id: 'p2', name:'Non‑stick Pan', price:1800, category:'Kitchen Wear', tags:['kitchen','cook'], image:'https://picsum.photos/seed/defra2/600/400' },
+      { id: 'p3', name:'Budget Smartphone', price:14999, category:'Electronics', tags:['phone','gadget'], image:'https://picsum.photos/seed/defra3/600/400' },
+      { id: 'p4', name:'Designer Bag', price:3500, category:'Fashion', tags:['bag','designer'], image:'https://picsum.photos/seed/defra4/600/400' }
     ];
-    let cart = [];
 
-    const productsDiv = document.getElementById("products");
-    const cartUl = document.getElementById("cart");
-    const totalSpan = document.getElementById("total");
+    function loadProducts(){
+      const raw = localStorage.getItem(LS_PRODUCTS);
+      if(!raw){ localStorage.setItem(LS_PRODUCTS, JSON.stringify(DEFAULTS)); return [...DEFAULTS]; }
+      try{ return JSON.parse(raw); }catch{ return [...DEFAULTS]; }
+    }
+    function saveProducts(arr){ localStorage.setItem(LS_PRODUCTS, JSON.stringify(arr)); }
 
-    function renderProducts() {
-      productsDiv.innerHTML = "";
-      products.forEach(p => {
-        const div = document.createElement("div");
-        div.className = "product";
-        div.innerHTML = `<h3>${p.name}</h3><p>Price: Ksh ${p.price}</p>
-                         <button onclick="addToCart(${p.id})">Add to Cart</button>`;
-        productsDiv.appendChild(div);
-      });
+    const state = { products: loadProducts(), cart: JSON.parse(localStorage.getItem(LS_CART)||'[]') };
+    function saveCart(){ localStorage.setItem(LS_CART, JSON.stringify(state.cart)); }
+    const fmt = n => `KES ${Number(n).toLocaleString()}`;
+
+    // ========= SHOP RENDER =========
+    function renderProducts(list = state.products){
+      const wrap = document.getElementById('products');
+      if(!list.length){ wrap.innerHTML = '<div class="pad">No products found.</div>'; return; }
+      wrap.innerHTML = list.map(p => `
+        <div class="product">
+          <img src="${p.image}" alt="${p.name}">
+          <div class="body">
+            <div><strong>${p.name}</strong></div>
+            <div class="price">${fmt(p.price)}</div>
+            <div class="slogan">${p.category}</div>
+            <button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button>
+          </div>
+        </div>`).join('');
     }
 
-    function addToCart(id) {
-      const product = products.find(p => p.id === id);
-      cart.push(product);
-      renderCart();
+    function searchProducts(){
+      const q = document.getElementById('q').value.toLowerCase().trim();
+      const cat = document.getElementById('catFilter').value;
+      const list = state.products.filter(p =>
+        (!cat || p.category===cat) && (!q || p.name.toLowerCase().includes(q) || (p.tags||[]).join(' ').toLowerCase().includes(q))
+      );
+      renderProducts(list);
     }
+    function clearFilters(){ document.getElementById('q').value=''; document.getElementById('catFilter').value=''; renderProducts(); }
 
-    function removeFromCart(index) {
-      cart.splice(index, 1);
-      renderCart();
-    }
+    // ========= CART =========
+    function addToCart(id){ const found = state.cart.find(l=>l.id===id); if(found){ found.qty++; } else { state.cart.push({id, qty:1}); } saveCart(); renderCart(); }
+    function changeQty(id, d){ const it = state.cart.find(l=>l.id===id); if(!it) return; it.qty += d; if(it.qty<=0){ state.cart = state.cart.filter(l=>l.id!==id); } saveCart(); renderCart(); }
+    function emptyCart(){ state.cart = []; saveCart(); renderCart(); }
 
-    function renderCart() {
-      cartUl.innerHTML = "";
+    function renderCart(){
+      const ul = document.getElementById('cartList');
       let total = 0;
-      cart.forEach((item, index) => {
-        const li = document.createElement("li");
-        li.innerHTML = `${item.name} - Ksh ${item.price} <span class="remove" onclick="removeFromCart(${index})">[Remove]</span>`;
-        cartUl.appendChild(li);
-        total += item.price;
-      });
-      totalSpan.textContent = total;
+      ul.innerHTML = state.cart.map(line => {
+        const p = state.products.find(pp=>pp.id===line.id);
+        const unit = p ? p.price : 0;
+        const lt = unit * line.qty; total += lt;
+        return `<li class="line">
+          <div><strong>${p?.name||line.id}</strong><div class="slogan">${fmt(unit)}</div></div>
+          <div class="qty">
+            <button class="btn ghost" onclick="changeQty('${line.id}',-1)">-</button>
+            <strong>${line.qty}</strong>
+            <button class="btn ghost" onclick="changeQty('${line.id}',1)">+</button>
+          </div>
+          <div><strong>${fmt(lt)}</strong></div>
+        </li>`;
+      }).join('');
+      document.getElementById('total').textContent = fmt(total);
     }
 
-    document.getElementById("checkoutForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      const formData = new FormData(this);
+    // ========= CHECKOUT =========
+    async function placeOrder(){
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const payment = document.getElementById('payment').value;
+      const trx = document.getElementById('trx').value.trim();
+      const notes = document.getElementById('notes').value.trim();
+      const msg = document.getElementById('msg');
 
-      // Check if transaction code is filled
-      if (!formData.get("transaction") || !formData.get("phone")) {
-        alert("Please complete your payment and fill in the transaction details.");
-        return;
-      }
+      if(!state.cart.length){ msg.textContent='⚠️ Your cart is empty.'; msg.style.color='#b91c1c'; return; }
+      if(!name || !email || !phone){ msg.textContent='⚠️ Name, email and phone are required.'; msg.style.color='#b91c1c'; return; }
+      if(!payment){ msg.textContent='⚠️ Select a payment method.'; msg.style.color='#b91c1c'; return; }
+      if(!trx){ msg.textContent='❌ Payment not completed. Paste your M‑Pesa transaction code.'; msg.style.color='#b91c1c'; return; }
 
-      // Prepare order details
-      let orderDetails = "";
-      cart.forEach(item => { orderDetails += `${item.name} - Ksh ${item.price}\n`; });
+      const lines = state.cart.map(l=>{ const p = state.products.find(x=>x.id===l.id)||{}; return `${p.name||l.id} x${l.qty}`; });
+      const total = state.cart.reduce((s,l)=>{ const p = state.products.find(x=>x.id===l.id); return s + (p?p.price:0)*l.qty; },0);
 
-      const templateParams = {
-        customer_name: formData.get("name"),
-        customer_email: formData.get("email"),
-        payment_method: formData.get("payment"),
-        transaction_code: formData.get("transaction"),
-        phone_number: formData.get("phone"),
-        order_list: orderDetails,
-        total_amount: totalSpan.textContent
+      // send email via EmailJS
+      const payload = {
+        to_email: OWNER_EMAIL,              // ensure your template uses this if you want owner notification
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
+        payment_method: payment,
+        payment_code: trx,
+        notes: notes,
+        order_list: lines.join('
+'),
+        total_amount: total
       };
 
-      // Send Email via EmailJS
-      emailjs.send("service_q1wwcea", "template_d68ychp", templateParams)
-        .then(response => {
-          alert("Order placed successfully! Confirmation sent to your email. We will notify Defra Shop.");
-          cart = [];
-          renderCart();
-          this.reset();
-        }, error => {
-          alert("Failed to send order. Please try again.");
-        });
-    });
-
-    function exportCSV() {
-      let csv = "Product,Price\n";
-      cart.forEach(item => {
-        csv += `${item.name},${item.price}\n`;
-      });
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.setAttribute("href", url);
-      a.setAttribute("download", "order.csv");
-      a.click();
+      try{
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, payload);
+        msg.textContent = '✅ Order received! Confirmation sent.'; msg.style.color='#065f46';
+        state.cart = []; saveCart(); renderCart();
+      }catch(e){
+        console.warn(e);
+        msg.textContent = '❌ Failed to send order. Please try again.'; msg.style.color='#b91c1c';
+      }
     }
 
-    renderProducts();
+    function exportCsv(){
+      if(!state.cart.length){ alert('No order to export.'); return; }
+      const rows = [['Name','Qty','Unit (KES)','Line Total (KES)']];
+      let total=0;
+      state.cart.forEach(l=>{ const p = state.products.find(x=>x.id===l.id); const unit=p?p.price:0; const lt=unit*l.qty; total+=lt; rows.push([p?.name||l.id,l.qty,unit,lt]);});
+      rows.push(['TOTAL','','',total]);
+      const csv = rows.map(r=>r.join(',')).join('
+');
+      const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`order_${Date.now()}.csv`; a.click(); URL.revokeObjectURL(url);
+    }
+
+    // ========= ADMIN =========
+    function adminLogin(){
+      const ok = document.getElementById('admin-pass').value === ADMIN_PASSWORD;
+      if(!ok){ alert('Wrong password'); return; }
+      document.getElementById('admin-lock').style.display='none';
+      document.getElementById('admin-panel').style.display='block';
+      renderAdminProducts();
+    }
+
+    function addProduct(){
+      const name = document.getElementById('pname').value.trim();
+      const price = Number(document.getElementById('pprice').value||0);
+      const category = document.getElementById('pcat').value;
+      const tags = (document.getElementById('ptags').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const file = document.getElementById('pimg').files[0];
+      if(!name || !price || !file){ alert('Name, price and image are required.'); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const item = { id: 'p'+Date.now(), name, price, category, tags, image: reader.result };
+        state.products.unshift(item); saveProducts(state.products); renderProducts(); renderAdminProducts();
+        document.getElementById('pname').value=''; document.getElementById('pprice').value=''; document.getElementById('ptags').value=''; document.getElementById('pimg').value='';
+        alert('✅ Product added');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderAdminProducts(){
+      const wrap = document.getElementById('admin-products');
+      wrap.innerHTML = state.products.map(p=>`
+        <div class="product">
+          <img src="${p.image}" alt="${p.name}">
+          <div class="body">
+            <div><strong>${p.name}</strong></div>
+            <div class="slogan">${p.category} • ${fmt(p.price)}</div>
+            <button class="btn warn" onclick="deleteProduct('${p.id}')">Delete</button>
+          </div>
+        </div>`).join('');
+    }
+    function deleteProduct(id){ if(!confirm('Delete this product?')) return; state.products = state.products.filter(p=>p.id!==id); saveProducts(state.products); renderProducts(); renderAdminProducts(); }
+    function wipeProducts(){ if(!confirm('Clear ALL products?')) return; saveProducts(DEFAULTS); state.products = loadProducts(); renderProducts(); renderAdminProducts(); }
+
+    // ========= INIT =========
+    renderProducts(); renderCart();
   </script>
 </body>
 </html>
