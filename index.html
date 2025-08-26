@@ -10,6 +10,7 @@
     .cart { margin-top: 20px; border: 1px solid #000; padding: 10px; }
     button { margin-top: 5px; }
     .remove { color: red; cursor: pointer; margin-left: 10px; }
+    .category { margin-top: 30px; }
   </style>
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
@@ -21,47 +22,87 @@
 </head>
 <body>
   <h1>Welcome to My Online Shop</h1>
-  <div id="products"></div>
-  
+
+  <h3>Accepted Payment</h3>
+  <p><strong>M-Pesa:</strong> Send Money - <b>0757603037</b></p>
+  <p><strong>Paybill:</strong> Business Number <b>247247</b> | Account <b>0763403580</b></p>
+
+  <!-- Product Categories -->
+  <div class="category">
+    <h2>Clothing</h2>
+    <div id="clothing"></div>
+  </div>
+
+  <div class="category">
+    <h2>Utensils</h2>
+    <div id="utensils"></div>
+  </div>
+
+  <div class="category">
+    <h2>Gadgets</h2>
+    <div id="gadgets"></div>
+  </div>
+
+  <div class="category">
+    <h2>Designers</h2>
+    <div id="designers"></div>
+  </div>
+
+  <div class="category">
+    <h2>Electronics</h2>
+    <div id="electronics"></div>
+  </div>
+
+  <div class="category">
+    <h2>Fashion</h2>
+    <div id="fashion"></div>
+  </div>
+
+  <div class="category">
+    <h2>Kitchen Wear</h2>
+    <div id="kitchen"></div>
+  </div>
+
   <div class="cart">
     <h2>Cart</h2>
     <ul id="cart"></ul>
-    <p><strong>Total:</strong> KESH.<span id="total">0</span></p>
+    <p><strong>Total:</strong> Ksh <span id="total">0</span></p>
     <form id="checkoutForm">
       <label>Name: <input type="text" name="name" required></label><br><br>
       <label>Email: <input type="email" name="email" required></label><br><br>
       <label>Payment Option:
         <select name="payment" required>
-          <option value="mpesa">M-Pesa</option>
+          <option value="mpesa-send">M-Pesa Send Money (0757603037)</option>
+          <option value="mpesa-paybill">M-Pesa Paybill (247247, Acc: 0763403580)</option>
           <option value="card">Credit Card</option>
           <option value="paypal">PayPal</option>
         </select>
       </label><br><br>
       <button type="submit">Place Order</button>
     </form>
-    <button onclick="exportCSV()">Export Order as CSV</button>
   </div>
 
   <script>
+    // Example Products
     const products = [
-      { id: 1, name: "Product A", price: 10 },
-      { id: 2, name: "Product B", price: 15 },
-      { id: 3, name: "Product C", price: 20 }
+      { id: 1, name: "T-Shirt", price: 800, category: "clothing", image: "https://via.placeholder.com/150" },
+      { id: 2, name: "Cooking Pot", price: 1500, category: "utensils", image: "https://via.placeholder.com/150" },
+      { id: 3, name: "Smartphone", price: 15000, category: "gadgets", image: "https://via.placeholder.com/150" },
+      { id: 4, name: "Designer Handbag", price: 6000, category: "designers", image: "https://via.placeholder.com/150" },
+      { id: 5, name: "TV", price: 25000, category: "electronics", image: "https://via.placeholder.com/150" },
+      { id: 6, name: "Shoes", price: 2000, category: "fashion", image: "https://via.placeholder.com/150" },
+      { id: 7, name: "Blender", price: 3500, category: "kitchen", image: "https://via.placeholder.com/150" }
     ];
+
     let cart = [];
 
-    const productsDiv = document.getElementById("products");
-    const cartUl = document.getElementById("cart");
-    const totalSpan = document.getElementById("total");
-
     function renderProducts() {
-      productsDiv.innerHTML = "";
       products.forEach(p => {
         const div = document.createElement("div");
         div.className = "product";
-        div.innerHTML = `<h3>${p.name}</h3><p>Price: $${p.price}</p>
+        div.innerHTML = `<img src="${p.image}" width="150"><h3>${p.name}</h3><p>Price: Ksh ${p.price}</p>
                          <button onclick="addToCart(${p.id})">Add to Cart</button>`;
-        productsDiv.appendChild(div);
+        document.getElementById(p.category).appendChild(div);
       });
     }
 
@@ -77,34 +118,36 @@
     }
 
     function renderCart() {
+      const cartUl = document.getElementById("cart");
+      const totalSpan = document.getElementById("total");
       cartUl.innerHTML = "";
       let total = 0;
       cart.forEach((item, index) => {
         const li = document.createElement("li");
-        li.innerHTML = `${item.name} - $${item.price} <span class="remove" onclick="removeFromCart(${index})">[Remove]</span>`;
+        li.innerHTML = `${item.name} - Ksh ${item.price} <span class="remove" onclick="removeFromCart(${index})">[Remove]</span>`;
         cartUl.appendChild(li);
         total += item.price;
       });
       totalSpan.textContent = total;
     }
 
+    // Checkout Form
     document.getElementById("checkoutForm").addEventListener("submit", function(e){
       e.preventDefault();
       const formData = new FormData(this);
 
-      // Prepare order details
       let orderDetails = "";
-      cart.forEach(item => { orderDetails += `${item.name} - $${item.price}\n`; });
+      cart.forEach(item => { orderDetails += `${item.name} - Ksh ${item.price}\n`; });
 
       const templateParams = {
         customer_name: formData.get("name"),
         customer_email: formData.get("email"),
         payment_method: formData.get("payment"),
         order_list: orderDetails,
-        total_amount: totalSpan.textContent
+        total_amount: document.getElementById("total").textContent
       };
 
-      // Send Email via EmailJS
+      // EmailJS - sends to both admin and customer
       emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", templateParams)
         .then(response => {
           alert("Order placed! Confirmation sent to your email.");
@@ -116,20 +159,8 @@
         });
     });
 
-    function exportCSV() {
-      let csv = "Product,Price\n";
-      cart.forEach(item => {
-        csv += `${item.name},${item.price}\n`;
-      });
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.setAttribute("href", url);
-      a.setAttribute("download", "order.csv");
-      a.click();
-    }
-
     renderProducts();
   </script>
 </body>
 </html>
+
