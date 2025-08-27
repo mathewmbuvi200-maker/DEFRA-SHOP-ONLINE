@@ -269,6 +269,31 @@ function saveProducts(arr) {
           </div>
         </div>`).join('');
     }
+    // ========= CART FUNCTIONS =========
+function addToCart(pid){
+  const product = state.products.find(p => p.id === pid);
+  if(!product) return;
+  state.cart.push({...product, qty: 1});
+  renderCart();
+}
+
+function renderCart(){
+  const wrap = document.getElementById('cart');
+  if(!state.cart.length){
+    wrap.innerHTML = '<div class="pad">Your cart is empty.</div>';
+    return;
+  }
+  wrap.innerHTML = state.cart.map(item => `
+    <div class="cart-item">
+      <span>${item.name} (x${item.qty})</span>
+      <span>${fmt(item.price * item.qty)}</span>
+    </div>`).join('');
+}
+
+function clearCart(){
+  state.cart = [];
+  renderCart();
+}
 
     function searchProducts(){
       const q = document.getElementById('q').value.toLowerCase().trim();
