@@ -418,7 +418,6 @@ function clearCart(){
         </div>
       `).join('');
     }
-    }
     function deleteProduct(id){ if(!confirm('Delete this product?')) return; state.products = state.products.filter(p=>p.id!==id); saveProducts(state.products); renderProducts(); renderAdminProducts(); }
     function wipeProducts(){ if(!confirm('Clear ALL products?')) return; saveProducts(DEFAULTS); state.products = loadProducts(); renderProducts(); renderAdminProducts(); }
 
