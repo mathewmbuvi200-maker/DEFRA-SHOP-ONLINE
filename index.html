@@ -270,26 +270,31 @@ function saveProducts(arr) {
         </div>`).join('');
     }
     // ========= CART FUNCTIONS =========
-function addToCart(pid){
-  const product = state.products.find(p => p.id === pid);
-  if(!product) return;
-  state.cart.push({...product, qty: 1});
-  renderCart();
-}
+function addToCart(id){
+      const item = state.products.find(p => p.id === id);
+      if(!item) return;
+      const existing = state.cart.find(ci => ci.id === id);
+      if(existing){ existing.qty++; }
+      else { state.cart.push({ ...item, qty: 1 }); }
+      renderCart();
+    }
+    function removeFromCart(id){
+      state.cart = state.cart.filter(ci => ci.id !== id);
+      renderCart();
+    }
 
 function renderCart(){
-  const wrap = document.getElementById('cart');
-  if(!state.cart.length){
-    wrap.innerHTML = '<div class="pad">Your cart is empty.</div>';
-    return;
-  }
-  wrap.innerHTML = state.cart.map(item => `
-    <div class="cart-item">
-      <span>${item.name} (x${item.qty})</span>
-      <span>${fmt(item.price * item.qty)}</span>
-    </div>`).join('');
-}
-
+      const wrap = document.getElementById('cart');
+      if(!state.cart.length){ wrap.innerHTML = '<h3>Cart</h3><div>Cart is empty.</div>'; return; }
+      wrap.innerHTML = '<h3>Cart</h3>' + state.cart.map(ci => `
+        <div class="product">
+          <div class="body">
+            <div><strong>${ci.name}</strong> (${ci.qty})</div>
+            <div class="price">${fmt(ci.price * ci.qty)}</div>
+            <button class="btn" onclick="removeFromCart('${ci.id}')">Remove</button>
+          </div>
+        </div>`).join('');
+    }
 function clearCart(){
   state.cart = [];
   renderCart();
@@ -405,24 +410,21 @@ function clearCart(){
       reader.readAsDataURL(file);
     }
 
-    function renderAdminProducts(){
+    function renderAdmin(){
       const wrap = document.getElementById('admin-products');
-      wrap.innerHTML = state.products.map(p=>`
-        <div class="product">
-          <img src="${p.image}" alt="${p.name}">
-          <div class="body">
-            <div><strong>${p.name}</strong></div>
-            <div class="slogan">${p.category} • ${fmt(p.price)}</div>
-            <button class="btn warn" onclick="deleteProduct('${p.id}')">Delete</button>
-          </div>
-        </div>`).join('');
+      wrap.innerHTML = '<h3>Admin Product List</h3>' + state.products.map(p => `
+        <div>
+          ${p.name} - ${fmt(p.price)} (${p.category})
+        </div>
+      `).join('');
+    }
     }
     function deleteProduct(id){ if(!confirm('Delete this product?')) return; state.products = state.products.filter(p=>p.id!==id); saveProducts(state.products); renderProducts(); renderAdminProducts(); }
     function wipeProducts(){ if(!confirm('Clear ALL products?')) return; saveProducts(DEFAULTS); state.products = loadProducts(); renderProducts(); renderAdminProducts(); }
 
     // ========= INIT =========
-    renderProducts(); renderCart();
+    renderProducts(); renderCart();renderAdmin();
 
-  </script>
+  </script></script>
 </body>
 </html>
