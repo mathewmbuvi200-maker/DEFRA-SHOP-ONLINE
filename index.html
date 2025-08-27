@@ -268,14 +268,28 @@ function saveProducts(arr) {
           </div>
         </div>`).join('');
     }
+    function renderProducts(){
+      const wrap = document.getElementById('products');
+      if(!state.products.length){ wrap.innerHTML = '<p>No products yet.</p>'; return; }
+      wrap.innerHTML = state.products.map(p => `
+        <div class="product">
+          <img src="${p.image}" alt="${p.name}">
+          <h4>${p.name}</h4>
+          <div>${fmt(p.price)}</div>
+          <div>${p.category}</div>
+          <small>Tags: ${p.tags.join(', ')}</small><br>
+          <button onclick="addToCart('${p.id}')">Add to Cart</button>
+        </div>
+      `).join('');
+    }
+    
     // ========= CART FUNCTIONS =========
 function addToCart(id){
       const item = state.products.find(p => p.id === id);
-      if(!item) return;
-      const existing = state.cart.find(ci => ci.id === id);
-      if(existing){ existing.qty++; }
-      else { state.cart.push({ ...item, qty: 1 }); }
-      renderCart();
+      if(item){ 
+        state.cart.push(item); 
+        renderCart();
+      }
     }
     function removeFromCart(id){
       state.cart = state.cart.filter(ci => ci.id !== id);
@@ -284,15 +298,12 @@ function addToCart(id){
 
 function renderCart(){
       const wrap = document.getElementById('cart');
-      if(!state.cart.length){ wrap.innerHTML = '<h3>Cart</h3><div>Cart is empty.</div>'; return; }
-      wrap.innerHTML = '<h3>Cart</h3>' + state.cart.map(ci => `
-        <div class="product">
-          <div class="body">
-            <div><strong>${ci.name}</strong> (${ci.qty})</div>
-            <div class="price">${fmt(ci.price * ci.qty)}</div>
-            <button class="btn" onclick="removeFromCart('${ci.id}')">Remove</button>
-          </div>
-        </div>`).join('');
+      if(!state.cart.length){ wrap.innerHTML = '<p>Cart is empty.</p>'; return; }
+      wrap.innerHTML = state.cart.map(c => `
+        <div>${c.name} - ${fmt(c.price)}</div>
+      `).join('');
+      const total = state.cart.reduce((sum, c) => sum + c.price, 0);
+      wrap.innerHTML += `<hr><b>Total: ${fmt(total)}</b>`;
     }
 function clearCart(){
   state.cart = [];
@@ -392,30 +403,32 @@ function clearCart(){
       renderAdminProducts();
     }
 
-    function addProduct(){
-  const name = document.getElementById('pname').value.trim();
-  const price = Number(document.getElementById('pprice').value||0);
-  const category = document.getElementById('pcat').value;
-  const tags = (document.getElementById('ptags').value||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const img = document.getElementById('pimg').value.trim();
+ function addProduct(){
+      const name = document.getElementById('pname').value.trim();
+      const price = Number(document.getElementById('pprice').value||0);
+      const category = document.getElementById('pcat').value.trim();
+      const tags = (document.getElementById('ptags').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const file = document.getElementById('pimg').files[0];
+      if(!name || !price || !file){ alert('Name, price and image required'); return; }
 
-  if(!name || !price || !img){ 
-    alert('Name, price and image URL are required.'); 
-    return; 
-  }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const item = { id: 'p'+Date.now(), name, price, category, tags, image: reader.result };
+        state.products.unshift(item);
+        renderProducts();
+        resetForm();
+      };
+      reader.readAsDataURL(file);
+    }
 
-  const item = { id: 'p'+Date.now(), name, price, category, tags, image: img };
-  state.products.unshift(item);
-  renderProducts();
-  renderAdminProducts();
-
-  document.getElementById('pname').value='';
-  document.getElementById('pprice').value='';
-  document.getElementById('ptags').value='';
-  document.getElementById('pcat').value='';
-  document.getElementById('pimg').value='';
-  alert('✅ Product added');
-}
+    function resetForm(){
+            document.getElementById('pname').value='';
+            document.getElementById('pprice').value='';
+            document.getElementById('pcat').value='';
+            document.getElementById('ptags').value='';
+            document.getElementById('pimg').value='';
+        alert('✅ Product added');
+      }
 
     function renderAdmin(){
       const wrap = document.getElementById('admin-products');
