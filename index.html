@@ -418,8 +418,20 @@ function clearCart(){
         </div>
       `).join('');
     }
-    function deleteProduct(id){ if(!confirm('Delete this product?')) return; state.products = state.products.filter(p=>p.id!==id); saveProducts(state.products); renderProducts(); renderAdminProducts(); }
-    function wipeProducts(){ if(!confirm('Clear ALL products?')) return; saveProducts(DEFAULTS); state.products = loadProducts(); renderProducts(); renderAdminProducts(); }
+    document.getElementById('add-product-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const name = document.getElementById('pname').value.trim();
+      const price = parseFloat(document.getElementById('pprice').value);
+      const category = document.getElementById('pcategory').value.trim();
+      const image = document.getElementById('pimage').value.trim();
+      if(!name || !price || !category || !image) return;
+
+      const id = 'p' + (state.products.length + 1);
+      state.products.push({ id, name, price, category, tags:[], image });
+      renderProducts();
+      renderAdmin();
+      e.target.reset();
+    });
 
     // ========= INIT =========
     renderProducts(); renderCart();renderAdmin();
