@@ -219,242 +219,269 @@
 
   <script>
     // ========= Simple in-page tabs =========
-    function switchTab(which){
-      document.getElementById('tab-shop').classList.toggle('active', which==='shop');
-      document.getElementById('tab-admin').classList.toggle('active', which==='admin');
-      document.getElementById('shop-view').style.display = which==='shop' ? 'block' : 'none';
-      document.getElementById('admin-view').style.display = which==='admin' ? 'block' : 'none';
+    <script>
+  // ========= Simple in-page tabs =========
+  function switchTab(which){
+    document.getElementById('tab-shop').classList.toggle('active', which==='shop');
+    document.getElementById('tab-admin').classList.toggle('active', which==='admin');
+    document.getElementById('shop-view').style.display = which==='shop' ? 'block' : 'none';
+    document.getElementById('admin-view').style.display = which==='admin' ? 'block' : 'none';
+  }
+
+  // ========= Data model =========
+  const ADMIN_PASSWORD = 'defra123'; // ← CHANGE THIS
+
+  // Default in-memory products
+  const DEFAULTS = [
+    { id: 'p1', name:'Classic T-Shirt', price:1200, category:'Clothing', tags:['clothes','tee'], image:'https://picsum.photos/seed/defra1/600/400' },
+    { id: 'p2', name:'Non-stick Pan', price:1800, category:'Kitchen Ware', tags:['kitchen','cook'], image:'https://picsum.photos/seed/defra2/600/400' },
+    { id: 'p3', name:'Budget Smartphone', price:14999, category:'Electronics', tags:['phone','gadget'], image:'https://picsum.photos/seed/defra3/600/400' },
+    { id: 'p4', name:'Designer Bag', price:3500, category:'Fashion', tags:['bag','designer'], image:'https://picsum.photos/seed/defra4/600/400' }
+  ];
+
+  // In-memory state (no localStorage)
+  const state = {
+    products: [...DEFAULTS],
+    cart: []
+  };
+
+  const fmt = n => `KES ${Number(n).toLocaleString()}`;
+
+  // ========= SHOP RENDER =========
+  function renderProducts(list = state.products){
+    const wrap = document.getElementById('products');
+    if(!list.length){
+      wrap.innerHTML = '<div class="pad">No products found.</div>';
+      return;
     }
+    wrap.innerHTML = list.map(p => `
+      <div class="product">
+        <img src="${p.image}" alt="${p.name}">
+        <div class="body">
+          <div><strong>${p.name}</strong></div>
+          <div class="price">${fmt(p.price)}</div>
+          <div class="slogan">${p.category}</div>
+          <button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button>
+        </div>
+      </div>
+    `).join('');
+  }
 
-    // ========= Data model =========
-    const ADMIN_PASSWORD = 'defra123'; // ← CHANGE THIS
-    const LS_PRODUCTS = 'defra_products_v1';
-    const LS_CART = 'defra_cart_v1';
+  function searchProducts(){
+    const q = document.getElementById('q').value.toLowerCase().trim();
+    const cat = document.getElementById('catFilter').value;
+    const list = state.products.filter(p =>
+      (!cat || p.category===cat) &&
+      (!q || p.name.toLowerCase().includes(q) || (p.tags||[]).join(' ').toLowerCase().includes(q))
+    );
+    renderProducts(list);
+  }
 
-// Seed with a few defaults
-const DEFAULTS = [
-  { id: 'p1', name:'Classic T-Shirt', price:1200, category:'Clothing', tags:['clothes','tee'], image:'https://picsum.photos/seed/defra1/600/400' },
-  { id: 'p2', name:'Non-stick Pan', price:1800, category:'Kitchen Wear', tags:['kitchen','cook'], image:'https://picsum.photos/seed/defra2/600/400' },
-  { id: 'p3', name:'Budget Smartphone', price:14999, category:'Electronics', tags:['phone','gadget'], image:'https://picsum.photos/seed/defra3/600/400' },
-  { id: 'p4', name:'Designer Bag', price:3500, category:'Fashion', tags:['bag','designer'], image:'https://picsum.photos/seed/defra4/600/400' }
-];
+  function clearFilters(){
+    document.getElementById('q').value='';
+    document.getElementById('catFilter').value='';
+    renderProducts();
+  }
 
-// This will be your live "database" in memory
-let PRODUCTS = [...DEFAULTS];
+  // ========= CART =========
+  function addToCart(id){
+    const found = state.cart.find(l=>l.id===id);
+    if(found){
+      found.qty++;
+    } else {
+      state.cart.push({id, qty:1});
+    }
+    renderCart();
+  }
 
-function loadProducts() {
-  // Simply return the in-memory PRODUCTS
-  return PRODUCTS;
-}
+  function changeQty(id, d){
+    const it = state.cart.find(l=>l.id===id);
+    if(!it) return;
+    it.qty += d;
+    if(it.qty<=0){
+      state.cart = state.cart.filter(l=>l.id!==id);
+    }
+    renderCart();
+  }
 
-function saveProducts(arr) {
-  // Update the in-memory PRODUCTS array
-  PRODUCTS = [...arr];
-}
-    
+  function emptyCart(){
+    state.cart = [];
+    renderCart();
+  }
 
-    // ========= SHOP RENDER =========
-    function renderProducts(list = state.products){
-      const wrap = document.getElementById('products');
-      if(!list.length){ wrap.innerHTML = '<div class="pad">No products found.</div>'; return; }
-      wrap.innerHTML = list.map(p => `
-        <div class="product">
-          <img src="${p.image}" alt="${p.name}">
-          <div class="body">
-            <div><strong>${p.name}</strong></div>
-            <div class="price">${fmt(p.price)}</div>
-            <div class="slogan">${p.category}</div>
-            <button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button>
+  function renderCart(){
+    const ul = document.getElementById('cartList');
+    let total = 0;
+    ul.innerHTML = state.cart.map(line => {
+      const p = state.products.find(pp=>pp.id===line.id);
+      const unit = p ? p.price : 0;
+      const lt = unit * line.qty;
+      total += lt;
+      return `
+        <li class="line">
+          <div><strong>${p?.name||line.id}</strong><div class="slogan">${fmt(unit)}</div></div>
+          <div class="qty">
+            <button class="btn ghost" onclick="changeQty('${line.id}',-1)">-</button>
+            <strong>${line.qty}</strong>
+            <button class="btn ghost" onclick="changeQty('${line.id}',1)">+</button>
           </div>
-        </div>`).join('');
+          <div><strong>${fmt(lt)}</strong></div>
+        </li>`;
+    }).join('');
+    document.getElementById('total').textContent = fmt(total);
+  }
+
+  // ========= CHECKOUT =========
+  async function placeOrder(){
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const payment = document.getElementById('payment').value;
+    const trx = document.getElementById('trx').value.trim();
+    const notes = document.getElementById('notes').value.trim();
+    const msg = document.getElementById('msg');
+
+    if(!state.cart.length){
+      msg.textContent='⚠️ Your cart is empty.';
+      msg.style.color='#b91c1c'; return;
     }
-    function renderProducts(){
-      const wrap = document.getElementById('products');
-      if(!state.products.length){ wrap.innerHTML = '<p>No products yet.</p>'; return; }
-      wrap.innerHTML = state.products.map(p => `
-        <div class="product">
-          <img src="${p.image}" alt="${p.name}">
-          <h4>${p.name}</h4>
-          <div>${fmt(p.price)}</div>
-          <div>${p.category}</div>
-          <small>Tags: ${p.tags.join(', ')}</small><br>
-          <button onclick="addToCart('${p.id}')">Add to Cart</button>
-        </div>
-      `).join('');
+    if(!name || !email || !phone){
+      msg.textContent='⚠️ Name, email and phone are required.';
+      msg.style.color='#b91c1c'; return;
     }
-    
-    // ========= CART FUNCTIONS =========
-function addToCart(id){
-      const item = state.products.find(p => p.id === id);
-      if(item){ 
-        state.cart.push(item); 
-        renderCart();
-      }
+    if(!payment){
+      msg.textContent='⚠️ Select a payment method.';
+      msg.style.color='#b91c1c'; return;
     }
-    function removeFromCart(id){
-      state.cart = state.cart.filter(ci => ci.id !== id);
-      renderCart();
-    }
-
-function renderCart(){
-      const wrap = document.getElementById('cart');
-      if(!state.cart.length){ wrap.innerHTML = '<p>Cart is empty.</p>'; return; }
-      wrap.innerHTML = state.cart.map(c => `
-        <div>${c.name} - ${fmt(c.price)}</div>
-      `).join('');
-      const total = state.cart.reduce((sum, c) => sum + c.price, 0);
-      wrap.innerHTML += `<hr><b>Total: ${fmt(total)}</b>`;
-    }
-function clearCart(){
-  state.cart = [];
-  renderCart();
-}
-
-    function searchProducts(){
-      const q = document.getElementById('q').value.toLowerCase().trim();
-      const cat = document.getElementById('catFilter').value;
-      const list = state.products.filter(p =>
-        (!cat || p.category===cat) && (!q || p.name.toLowerCase().includes(q) || (p.tags||[]).join(' ').toLowerCase().includes(q))
-      );
-      renderProducts(list);
-    }
-    function clearFilters(){ document.getElementById('q').value=''; document.getElementById('catFilter').value=''; renderProducts(); }
-
-    // ========= CART =========
-    function addToCart(id){ const found = state.cart.find(l=>l.id===id); if(found){ found.qty++; } else { state.cart.push({id, qty:1}); } saveCart(); renderCart(); }
-    function changeQty(id, d){ const it = state.cart.find(l=>l.id===id); if(!it) return; it.qty += d; if(it.qty<=0){ state.cart = state.cart.filter(l=>l.id!==id); } saveCart(); renderCart(); }
-    function emptyCart(){ state.cart = []; saveCart(); renderCart(); }
-
-    function renderCart(){
-      const wrap = document.getElementById('cart');
-      if(!state.cart.length){
-        wrap.innerHTML = '<div class="pad">Your cart is empty.</div>';
-        return;
-      }
-      wrap.innerHTML = state.cart.map(item => `
-        <div class="cart-item">
-          <span>${item.name} (x${item.qty})</span>
-          <span>${fmt(item.price * item.qty)}</span>
-        </div>`).join('');
-    }
-    function clearCart(){
-  state.cart = [];
-  renderCart();
-}
-    
-    // ========= CHECKOUT =========
-    async function placeOrder(){
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const payment = document.getElementById('payment').value;
-      const trx = document.getElementById('trx').value.trim();
-      const notes = document.getElementById('notes').value.trim();
-      const msg = document.getElementById('msg');
-
-      if(!state.cart.length){ msg.textContent='⚠️ Your cart is empty.'; msg.style.color='#b91c1c'; return; }
-      if(!name || !email || !phone){ msg.textContent='⚠️ Name, email and phone are required.'; msg.style.color='#b91c1c'; return; }
-      if(!payment){ msg.textContent='⚠️ Select a payment method.'; msg.style.color='#b91c1c'; return; }
-      if(!trx){ msg.textContent='❌ Payment not completed. Paste your M‑Pesa transaction code.'; msg.style.color='#b91c1c'; return; }
-
-      const lines = state.cart.map(l=>{ const p = state.products.find(x=>x.id===l.id)||{}; return `${p.name||l.id} x${l.qty}`; });
-      const total = state.cart.reduce((s,l)=>{ const p = state.products.find(x=>x.id===l.id); return s + (p?p.price:0)*l.qty; },0);
-
-      // send email via EmailJS
-      const payload = {
-        to_email: OWNER_EMAIL,              // ensure your template uses this if you want owner notification
-        customer_name: name,
-        customer_email: email,
-        customer_phone: phone,
-        payment_method: payment,
-        payment_code: trx,
-        notes: notes,
-        order_list: lines.join(''),
-        total_amount: total
-      };
-
-      try{
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, payload);
-        msg.textContent = '✅ Order received! Confirmation sent.'; msg.style.color='#065f46';
-        state.cart = []; saveCart(); renderCart();
-      }catch(e){
-        console.warn(e);
-        msg.textContent = '❌ Failed to send order. Please try again.'; msg.style.color='#b91c1c';
-      }
+    if(!trx){
+      msg.textContent='❌ Payment not completed. Paste your M-Pesa transaction code.';
+      msg.style.color='#b91c1c'; return;
     }
 
-    function exportCsv(){
-      if(!state.cart.length){ alert('No order to export.'); return; }
-      const rows = [['Name','Qty','Unit (KES)','Line Total (KES)']];
-      let total=0;
-      state.cart.forEach(l=>{ const p = state.products.find(x=>x.id===l.id); const unit=p?p.price:0; const lt=unit*l.qty; total+=lt; rows.push([p?.name||l.id,l.qty,unit,lt]);});
-      rows.push(['TOTAL','','',total]);
-      const csv = rows.map(r=>r.join(',')).join('');
-      const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-      const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`order_${Date.now()}.csv`; a.click(); URL.revokeObjectURL(url);
-    }
-
-    // ========= ADMIN =========
-    function adminLogin(){
-      const ok = document.getElementById('admin-pass').value === ADMIN_PASSWORD;
-      if(!ok){ alert('Wrong password'); return; }
-      document.getElementById('admin-lock').style.display='none';
-      document.getElementById('admin-panel').style.display='block';
-      renderAdminProducts();
-    }
-
- function addProduct(){
-      const name = document.getElementById('pname').value.trim();
-      const price = Number(document.getElementById('pprice').value||0);
-      const category = document.getElementById('pcat').value.trim();
-      const tags = (document.getElementById('ptags').value||'').split(',').map(s=>s.trim()).filter(Boolean);
-      const file = document.getElementById('pimg').files[0];
-      if(!name || !price || !file){ alert('Name, price and image required'); return; }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const item = { id: 'p'+Date.now(), name, price, category, tags, image: reader.result };
-        state.products.unshift(item);
-        renderProducts();
-        resetForm();
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function resetForm(){
-            document.getElementById('pname').value='';
-            document.getElementById('pprice').value='';
-            document.getElementById('pcat').value='';
-            document.getElementById('ptags').value='';
-            document.getElementById('pimg').value='';
-        alert('✅ Product added');
-      }
-
-    function renderAdmin(){
-      const wrap = document.getElementById('admin-products');
-      wrap.innerHTML = '<h3>Admin Product List</h3>' + state.products.map(p => `
-        <div>
-          ${p.name} - ${fmt(p.price)} (${p.category})
-        </div>
-      `).join('');
-    }
-    document.getElementById('add-product-form').addEventListener('submit', e => {
-      e.preventDefault();
-      const name = document.getElementById('pname').value.trim();
-      const price = parseFloat(document.getElementById('pprice').value);
-      const category = document.getElementById('pcategory').value.trim();
-      const image = document.getElementById('pimage').value.trim();
-      if(!name || !price || !category || !image) return;
-
-      const id = 'p' + (state.products.length + 1);
-      state.products.push({ id, name, price, category, tags:[], image });
-      renderProducts();
-      renderAdmin();
-      e.target.reset();
+    const lines = state.cart.map(l=>{
+      const p = state.products.find(x=>x.id===l.id)||{};
+      return `${p.name||l.id} x${l.qty}`;
     });
+    const total = state.cart.reduce((s,l)=>{
+      const p = state.products.find(x=>x.id===l.id);
+      return s + (p?p.price:0)*l.qty;
+    },0);
 
-    // ========= INIT =========
-    renderProducts(); renderCart();renderAdmin();
+    const payload = {
+      to_email: OWNER_EMAIL,
+      customer_name: name,
+      customer_email: email,
+      customer_phone: phone,
+      payment_method: payment,
+      payment_code: trx,
+      notes: notes,
+      order_list: lines.join(', '),
+      total_amount: total
+    };
+
+    try{
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, payload);
+      msg.textContent = '✅ Order received! Confirmation sent.';
+      msg.style.color='#065f46';
+      state.cart = [];
+      renderCart();
+    }catch(e){
+      console.warn(e);
+      msg.textContent = '❌ Failed to send order. Please try again.';
+      msg.style.color='#b91c1c';
+    }
+  }
+
+  function exportCsv(){
+    if(!state.cart.length){
+      alert('No order to export.');
+      return;
+    }
+    const rows = [['Name','Qty','Unit (KES)','Line Total (KES)']];
+    let total=0;
+    state.cart.forEach(l=>{
+      const p = state.products.find(x=>x.id===l.id);
+      const unit=p?p.price:0;
+      const lt=unit*l.qty;
+      total+=lt;
+      rows.push([p?.name||l.id,l.qty,unit,lt]);
+    });
+    rows.push(['TOTAL','','',total]);
+    const csv = rows.map(r=>r.join(',')).join('\n');
+    const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`order_${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ========= ADMIN =========
+  function adminLogin(){
+    const ok = document.getElementById('admin-pass').value === ADMIN_PASSWORD;
+    if(!ok){ alert('Wrong password'); return; }
+    document.getElementById('admin-lock').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+    renderAdminProducts();
+  }
+
+  function addProduct(){
+    const name = document.getElementById('pname').value.trim();
+    const price = Number(document.getElementById('pprice').value||0);
+    const category = document.getElementById('pcat').value;
+    const tags = (document.getElementById('ptags').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+    const file = document.getElementById('pimg').files[0];
+    if(!name || !price || !file){ alert('Name, price and image are required.'); return; }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const item = { id: 'p'+Date.now(), name, price, category, tags, image: reader.result };
+      state.products.unshift(item);
+      renderProducts();
+      renderAdminProducts();
+      document.getElementById('pname').value='';
+      document.getElementById('pprice').value='';
+      document.getElementById('ptags').value='';
+      document.getElementById('pimg').value='';
+      alert('✅ Product added');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function renderAdminProducts(){
+    const wrap = document.getElementById('admin-products');
+    wrap.innerHTML = state.products.map(p=>`
+      <div class="product">
+        <img src="${p.image}" alt="${p.name}">
+        <div class="body">
+          <div><strong>${p.name}</strong></div>
+          <div class="slogan">${p.category} • ${fmt(p.price)}</div>
+          <button class="btn warn" onclick="deleteProduct('${p.id}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function deleteProduct(id){
+    if(!confirm('Delete this product?')) return;
+    state.products = state.products.filter(p=>p.id!==id);
+    renderProducts();
+    renderAdminProducts();
+  }
+
+  function wipeProducts(){
+    if(!confirm('Clear ALL products?')) return;
+    state.products = [...DEFAULTS];
+    renderProducts();
+    renderAdminProducts();
+  }
+
+  // ========= INIT =========
+  renderProducts();
+  renderCart();
+</script>
+
 
   </script></script>
 </body>
