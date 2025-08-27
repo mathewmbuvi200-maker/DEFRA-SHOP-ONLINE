@@ -252,9 +252,22 @@ function saveProducts(arr) {
   // Update the in-memory PRODUCTS array
   PRODUCTS = [...arr];
 }
-    const state = { products: loadProducts(), cart: JSON.parse(localStorage.getItem(LS_CART)||'[]') };
-    function saveCart(){ localStorage.setItem(LS_CART, JSON.stringify(state.cart)); }
-    const fmt = n => `KES ${Number(n).toLocaleString()}`;
+    // ========= STATE =========
+const DEFAULTS = [
+  { id: 'p1', name:'Classic T-Shirt', price:1200, category:'Clothing', tags:['clothes','tee'], image:'https://picsum.photos/seed/defra1/600/400' },
+  { id: 'p2', name:'Non-stick Pan', price:1800, category:'Kitchen Wear', tags:['kitchen','cook'], image:'https://picsum.photos/seed/defra2/600/400' },
+  { id: 'p3', name:'Budget Smartphone', price:14999, category:'Electronics', tags:['phone','gadget'], image:'https://picsum.photos/seed/defra3/600/400' },
+  { id: 'p4', name:'Designer Bag', price:3500, category:'Fashion', tags:['bag','designer'], image:'https://picsum.photos/seed/defra4/600/400' }
+];
+
+// everything lives in memory, nothing in localStorage
+const state = { 
+  products: [...DEFAULTS], 
+  cart: [] 
+};
+
+// helper for currency formatting
+const fmt = n => `KES ${Number(n).toLocaleString()}`;
 
     // ========= SHOP RENDER =========
     function renderProducts(list = state.products){
