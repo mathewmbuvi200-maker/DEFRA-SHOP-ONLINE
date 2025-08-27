@@ -288,25 +288,22 @@ function saveProducts(arr) {
     function emptyCart(){ state.cart = []; saveCart(); renderCart(); }
 
     function renderCart(){
-      const ul = document.getElementById('cartList');
-      let total = 0;
-      ul.innerHTML = state.cart.map(line => {
-        const p = state.products.find(pp=>pp.id===line.id);
-        const unit = p ? p.price : 0;
-        const lt = unit * line.qty; total += lt;
-        return `<li class="line">
-          <div><strong>${p?.name||line.id}</strong><div class="slogan">${fmt(unit)}</div></div>
-          <div class="qty">
-            <button class="btn ghost" onclick="changeQty('${line.id}',-1)">-</button>
-            <strong>${line.qty}</strong>
-            <button class="btn ghost" onclick="changeQty('${line.id}',1)">+</button>
-          </div>
-          <div><strong>${fmt(lt)}</strong></div>
-        </li>`;
-      }).join('');
-      document.getElementById('total').textContent = fmt(total);
+      const wrap = document.getElementById('cart');
+      if(!state.cart.length){
+        wrap.innerHTML = '<div class="pad">Your cart is empty.</div>';
+        return;
+      }
+      wrap.innerHTML = state.cart.map(item => `
+        <div class="cart-item">
+          <span>${item.name} (x${item.qty})</span>
+          <span>${fmt(item.price * item.qty)}</span>
+        </div>`).join('');
     }
-
+    function clearCart(){
+  state.cart = [];
+  renderCart();
+}
+    
     // ========= CHECKOUT =========
     async function placeOrder(){
       const name = document.getElementById('name').value.trim();
