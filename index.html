@@ -232,21 +232,26 @@
     const LS_PRODUCTS = 'defra_products_v1';
     const LS_CART = 'defra_cart_v1';
 
-    // Seed with a few defaults if nothing exists
-    const DEFAULTS = [
-      { id: 'p1', name:'Classic T‑Shirt', price:1200, category:'Clothing', tags:['clothes','tee'], image:'https://picsum.photos/seed/defra1/600/400' },
-      { id: 'p2', name:'Non‑stick Pan', price:1800, category:'Kitchen Wear', tags:['kitchen','cook'], image:'https://picsum.photos/seed/defra2/600/400' },
-      { id: 'p3', name:'Budget Smartphone', price:14999, category:'Electronics', tags:['phone','gadget'], image:'https://picsum.photos/seed/defra3/600/400' },
-      { id: 'p4', name:'Designer Bag', price:3500, category:'Fashion', tags:['bag','designer'], image:'https://picsum.photos/seed/defra4/600/400' }
-    ];
+// Seed with a few defaults
+const DEFAULTS = [
+  { id: 'p1', name:'Classic T-Shirt', price:1200, category:'Clothing', tags:['clothes','tee'], image:'https://picsum.photos/seed/defra1/600/400' },
+  { id: 'p2', name:'Non-stick Pan', price:1800, category:'Kitchen Wear', tags:['kitchen','cook'], image:'https://picsum.photos/seed/defra2/600/400' },
+  { id: 'p3', name:'Budget Smartphone', price:14999, category:'Electronics', tags:['phone','gadget'], image:'https://picsum.photos/seed/defra3/600/400' },
+  { id: 'p4', name:'Designer Bag', price:3500, category:'Fashion', tags:['bag','designer'], image:'https://picsum.photos/seed/defra4/600/400' }
+];
 
-    function loadProducts(){
-      const raw = localStorage.getItem(LS_PRODUCTS);
-      if(!raw){ localStorage.setItem(LS_PRODUCTS, JSON.stringify(DEFAULTS)); return [...DEFAULTS]; }
-      try{ return JSON.parse(raw); }catch{ return [...DEFAULTS]; }
-    }
-    function saveProducts(arr){ localStorage.setItem(LS_PRODUCTS, JSON.stringify(arr)); }
+// This will be your live "database" in memory
+let PRODUCTS = [...DEFAULTS];
 
+function loadProducts() {
+  // Simply return the in-memory PRODUCTS
+  return PRODUCTS;
+}
+
+function saveProducts(arr) {
+  // Update the in-memory PRODUCTS array
+  PRODUCTS = [...arr];
+}
     const state = { products: loadProducts(), cart: JSON.parse(localStorage.getItem(LS_CART)||'[]') };
     function saveCart(){ localStorage.setItem(LS_CART, JSON.stringify(state.cart)); }
     const fmt = n => `KES ${Number(n).toLocaleString()}`;
