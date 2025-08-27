@@ -393,21 +393,29 @@ function clearCart(){
     }
 
     function addProduct(){
-      const name = document.getElementById('pname').value.trim();
-      const price = Number(document.getElementById('pprice').value||0);
-      const category = document.getElementById('pcat').value;
-      const tags = (document.getElementById('ptags').value||'').split(',').map(s=>s.trim()).filter(Boolean);
-      const file = document.getElementById('pimg').files[0];
-      if(!name || !price || !file){ alert('Name, price and image are required.'); return; }
-      const reader = new FileReader();
-      reader.onload = () => {
-        const item = { id: 'p'+Date.now(), name, price, category, tags, image: reader.result };
-        state.products.unshift(item); saveProducts(state.products); renderProducts(); renderAdminProducts();
-        document.getElementById('pname').value=''; document.getElementById('pprice').value=''; document.getElementById('ptags').value=''; document.getElementById('pimg').value='';
-        alert('✅ Product added');
-      };
-      reader.readAsDataURL(file);
-    }
+  const name = document.getElementById('pname').value.trim();
+  const price = Number(document.getElementById('pprice').value||0);
+  const category = document.getElementById('pcat').value;
+  const tags = (document.getElementById('ptags').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const img = document.getElementById('pimg').value.trim();
+
+  if(!name || !price || !img){ 
+    alert('Name, price and image URL are required.'); 
+    return; 
+  }
+
+  const item = { id: 'p'+Date.now(), name, price, category, tags, image: img };
+  state.products.unshift(item);
+  renderProducts();
+  renderAdminProducts();
+
+  document.getElementById('pname').value='';
+  document.getElementById('pprice').value='';
+  document.getElementById('ptags').value='';
+  document.getElementById('pcat').value='';
+  document.getElementById('pimg').value='';
+  alert('✅ Product added');
+}
 
     function renderAdmin(){
       const wrap = document.getElementById('admin-products');
